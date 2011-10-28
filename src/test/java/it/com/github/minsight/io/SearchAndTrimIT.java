@@ -13,11 +13,13 @@ public class SearchAndTrimIT {
 		ArrayList<String> pathPrefixedfileNames = fileSearch
 				.getFileNames("/media/fone");
 
-		FileNameTrimmer fileNameTrimmer = new FileNameTrimmer();
+		FileNameCleaner fileNameTrimmer = new FileNameCleaner();
 		ArrayList<String> simpleNames = fileNameTrimmer
 				.trimDirPath(pathPrefixedfileNames);
 		List<String> simpleNamesTwo = fileNameTrimmer.trimMetaInfo(simpleNames);
-		System.out.println(simpleNamesTwo);
+		List<String> nonWordsReplaced = fileNameTrimmer
+				.withoutNonWords(simpleNamesTwo);
+		System.out.println(nonWordsReplaced);
 	}
 
 }

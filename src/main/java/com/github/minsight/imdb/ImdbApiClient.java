@@ -1,5 +1,6 @@
 package com.github.minsight.imdb;
 
+import com.github.minsight.gui.MovieInsightBasicFrame;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.github.minsight.model.ImdbEntry;
+import java.util.Vector;
 
 public class ImdbApiClient {
 
@@ -64,8 +66,19 @@ public class ImdbApiClient {
 
 		List<ImdbEntry> imdbEntries = new ArrayList<ImdbEntry>();
 
+                int rowCount=0;
 		for (String movieName : movieNames) {
-			imdbEntries.add(this.getMovieInfo(movieName));
+                    ImdbEntry entry=this.getMovieInfo(movieName);
+			imdbEntries.add(entry);
+                       Vector<String> vector = new Vector<String>();
+                       vector.addElement(entry.getTitle());
+                       vector.addElement(entry.getRating());
+                       vector.addElement(entry.getVotes());
+                       vector.addElement(entry.getGenre());
+                       MovieInsightBasicFrame.getTableModel().insertRow(rowCount++,vector);
+                       MovieInsightBasicFrame.getTableModel().fireTableDataChanged();
+                       //MovieInsightBasicFrame.getTableModel().addRow(new String[]{entry.getTitle(),entry.getRating(),entry.getVotes(),entry.getGenre()});
+                        //MovieInsightBasicFrame.getTableModel().fireTableRowsInserted(1,1);
 		}
 
 		return imdbEntries;

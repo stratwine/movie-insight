@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.annotations.VisibleForTesting;
 
 public class FileNameCleaner {
 
@@ -35,7 +34,7 @@ public class FileNameCleaner {
 		return nonWordsReplaced;
 	}
 
-	@VisibleForTesting
+	
 	@SuppressWarnings("static-access")
 	public String metaInfoRemoved(String fileName) {
 
@@ -47,7 +46,7 @@ public class FileNameCleaner {
 		return replaced;
 	}
 
-	@VisibleForTesting
+	
 	public String pathRemoved(String pathPrefixedFileName) {
 
 		int lastIndexOfFileSeperator = pathPrefixedFileName
@@ -68,7 +67,7 @@ public class FileNameCleaner {
 
 	}
 
-	@VisibleForTesting
+
 	public String nonWordsReplacedWithSpace(String fileName) {
 		String nonWordCharsReplaced = fileName.replaceAll("\\W", " ");
 		return nonWordCharsReplaced;

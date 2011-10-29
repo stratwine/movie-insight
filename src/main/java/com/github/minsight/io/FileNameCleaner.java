@@ -4,9 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
+
 public class FileNameCleaner {
 
-	public ArrayList<String> trimDirPath(ArrayList<String> pathPrefixedFileNames) {
+	public ArrayList<String> withoutDirPath(
+			ArrayList<String> pathPrefixedFileNames) {
 
 		ArrayList<String> simpleFileNames = new ArrayList<String>();
 		for (String pathPrefixedFileName : pathPrefixedFileNames) {
@@ -16,7 +19,7 @@ public class FileNameCleaner {
 		return simpleFileNames;
 	}
 
-	public List<String> trimMetaInfo(List<String> fileNames) {
+	public List<String> withoutMetaInfo(List<String> fileNames) {
 		List<String> metaInfoTrimmedFileNames = new ArrayList<String>();
 		for (String fileName : fileNames) {
 			metaInfoTrimmedFileNames.add(metaInfoRemoved(fileName));
@@ -27,11 +30,12 @@ public class FileNameCleaner {
 	public List<String> withoutNonWords(List<String> fileNames) {
 		List<String> nonWordsReplaced = new ArrayList<String>();
 		for (String fileName : fileNames) {
-			nonWordsReplaced.add(this.replaceSpecialCharsWithSpace(fileName));
+			nonWordsReplaced.add(this.nonWordsReplacedWithSpace(fileName));
 		}
 		return nonWordsReplaced;
 	}
 
+	@VisibleForTesting
 	@SuppressWarnings("static-access")
 	public String metaInfoRemoved(String fileName) {
 
@@ -43,6 +47,7 @@ public class FileNameCleaner {
 		return replaced;
 	}
 
+	@VisibleForTesting
 	public String pathRemoved(String pathPrefixedFileName) {
 
 		int lastIndexOfFileSeperator = pathPrefixedFileName
@@ -63,7 +68,8 @@ public class FileNameCleaner {
 
 	}
 
-	public String replaceSpecialCharsWithSpace(String fileName) {
+	@VisibleForTesting
+	public String nonWordsReplacedWithSpace(String fileName) {
 		String nonWordCharsReplaced = fileName.replaceAll("\\W", " ");
 		return nonWordCharsReplaced;
 	}

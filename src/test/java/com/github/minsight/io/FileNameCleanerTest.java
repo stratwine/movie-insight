@@ -27,7 +27,7 @@ public class FileNameCleanerTest {
 	@Test
 	public void withoutNonWordChars() {
 		String spaceReplaced = fileNameTrimmer
-				.replaceSpecialCharsWithSpace("this-is-a-test");
+				.nonWordsReplacedWithSpace("this-is-a-test");
 		assertTrue(spaceReplaced.equals("this is a test"));
 	}
 

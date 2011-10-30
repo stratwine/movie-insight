@@ -31,9 +31,7 @@ public class SearchAndTrimIT {
 				.getEncoded(nonWordsReplaced);
 
 		ImdbApiClient client = new ImdbApiClient();
-		List<ImdbEntry> imdbEntries = client.getMoviesInfo(encodedMovieList);
-		System.out.println(imdbEntries);
-
+		//TODO: complete test
 	}
 
 }

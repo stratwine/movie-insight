@@ -1,9 +1,13 @@
 package com.github.minsight.imdb;
 
-import com.github.minsight.gui.MovieInsightBasicFrame;
+import com.github.minsight.gui.ComponentsReferenceHolder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -16,71 +20,122 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.github.minsight.model.ImdbEntry;
-import java.util.Vector;
+import javax.swing.SwingWorker;
 
-public class ImdbApiClient {
+public class ImdbApiClient extends SwingWorker<List<ImdbEntry>, String> {
 
-	HttpClient httpclient = new DefaultHttpClient();
+     HttpClient httpclient = new DefaultHttpClient();
+     List<String> encodedMovieList;
+     ComponentsReferenceHolder componentsReferenceHolder;
+     private List<ImdbEntry> result;
 
-	public HttpClient getHttpClient() {
-		return this.httpclient;
-	}
+    public  List<ImdbEntry>getImdbEntriesResult()
+    {
+       return result;
+    }
 
-	public ImdbEntry getMovieInfo(String movieName) {
+    public ImdbApiClient()
+    {
 
-		ImdbEntry movieInfo = null;
-		try {
-			movieInfo = retrieveMovieInfo(movieName);
-		} catch (JsonParseException e) {
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println("MovieInfo Retrieved:" + movieInfo);
-		return movieInfo;
-	}
+    }
 
-	private ImdbEntry retrieveMovieInfo(String movieName) throws IOException,
-			ClientProtocolException, JsonParseException, JsonMappingException {
-		HttpGet httpget = new HttpGet("http://www.imdbapi.com/?t=" + movieName);
+    public ImdbApiClient(List<String> encodedMovieList, ComponentsReferenceHolder componentsReferenceHolder) {
+        this.encodedMovieList=encodedMovieList;
+        this.componentsReferenceHolder=componentsReferenceHolder;
 
-		System.out.println("executing request " + httpget.getURI());
+    }
 
-		// Create a response handler
-		ResponseHandler<String> responseHandler = new BasicResponseHandler();
-		String responseBody = getHttpClient().execute(httpget, responseHandler);
-		System.out.println("----------------------------------------");
-		System.out.println(responseBody);
-		System.out.println("----------------------------------------");
+    public void setEncodedMovieList(List<String> encodedMovieList) {
+        this.encodedMovieList = encodedMovieList;
+    }
 
-		ObjectMapper mapper = new ObjectMapper();
-		ImdbEntry imdbEntry = mapper.readValue(responseBody, ImdbEntry.class);
-		return imdbEntry;
-	}
+    public void setHttpclient(HttpClient httpclient) {
+        this.httpclient = httpclient;
+    }
 
-	public List<ImdbEntry> getMoviesInfo(List<String> movieNames) {
+    public HttpClient getHttpClient() {
+        return this.httpclient;
+    }
 
-		List<ImdbEntry> imdbEntries = new ArrayList<ImdbEntry>();
+    public ImdbEntry getMovieInfo(String movieName) {
 
-                int rowCount=0;
-		for (String movieName : movieNames) {
-                    ImdbEntry entry=this.getMovieInfo(movieName);
-			imdbEntries.add(entry);
-                       Vector<String> vector = new Vector<String>();
-                       vector.addElement(entry.getTitle());
-                       vector.addElement(entry.getRating());
-                       vector.addElement(entry.getVotes());
-                       vector.addElement(entry.getGenre());
-                       MovieInsightBasicFrame.getTableModel().insertRow(rowCount++,vector);
-                       MovieInsightBasicFrame.getTableModel().fireTableDataChanged();
-                       //MovieInsightBasicFrame.getTableModel().addRow(new String[]{entry.getTitle(),entry.getRating(),entry.getVotes(),entry.getGenre()});
-                        //MovieInsightBasicFrame.getTableModel().fireTableRowsInserted(1,1);
-		}
+        ImdbEntry movieInfo = null;
+        try {
+            movieInfo = retrieveMovieInfo(movieName);
+        } catch (JsonParseException e) {
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("MovieInfo Retrieved:" + movieInfo);
+        return movieInfo;
+    }
 
-		return imdbEntries;
-	}
+    private ImdbEntry retrieveMovieInfo(String movieName) throws IOException,
+            ClientProtocolException, JsonParseException, JsonMappingException {
+        HttpGet httpget = new HttpGet("http://www.imdbapi.com/?t=" + movieName);
+
+        System.out.println("executing request " + httpget.getURI());
+
+        // Create a response handler
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseBody = getHttpClient().execute(httpget, responseHandler);
+        System.out.println("----------------------------------------");
+        System.out.println(responseBody);
+        System.out.println("----------------------------------------");
+
+        ObjectMapper mapper = new ObjectMapper();
+        ImdbEntry imdbEntry = mapper.readValue(responseBody, ImdbEntry.class);
+        return imdbEntry;
+    }
+
+    @Override
+    protected List<ImdbEntry> doInBackground() throws Exception {
+
+        List<ImdbEntry> imdbEntries = new ArrayList<ImdbEntry>();
+
+        for (String movieName : this.encodedMovieList) {
+            ImdbEntry entry = this.getMovieInfo(movieName);
+            imdbEntries.add(entry);
+            publish(entry.getTitle());
+        }
+
+        return imdbEntries;
+
+    }
+
+    @Override
+    protected void process(List<String> messages) {
+        for(String message:messages){
+            System.out.println("adding progress message"+message);
+        componentsReferenceHolder.getProgressBar().setString("Fetching info on\" "+message+"\"\n");
+
+        }
+
+    }
+
+    @Override
+    protected void done()
+    {
+        try {
+            componentsReferenceHolder.getProgressBar().setIndeterminate(false);
+            componentsReferenceHolder.getProgressBar().setString("Done");
+            result = get();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ImdbApiClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ExecutionException ex) {
+            Logger.getLogger(ImdbApiClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        componentsReferenceHolder.getProgressBar().setVisible(false);
+        componentsReferenceHolder.getDirChooser().setVisible(false);
+        componentsReferenceHolder.getScanButton().setVisible(false);
+        componentsReferenceHolder.getSaveAsFileChooser().setVisible(true);
+        componentsReferenceHolder.getSaveButton().setVisible(true);
+    }
+
 }

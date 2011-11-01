@@ -1,5 +1,7 @@
 package com.github.minsight.io;
 
+import com.github.minsight.annotations.VisibleForTesting;
+import com.github.minsight.encoder.UrlEncoderUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +9,8 @@ import java.util.List;
 
 public class FileNameCleaner {
 
-	public ArrayList<String> withoutDirPath(
-			ArrayList<String> pathPrefixedFileNames) {
+	public List<String> withoutDirPath(
+			List<String> pathPrefixedFileNames) {
 
 		ArrayList<String> simpleFileNames = new ArrayList<String>();
 		for (String pathPrefixedFileName : pathPrefixedFileNames) {
@@ -34,9 +36,10 @@ public class FileNameCleaner {
 		return nonWordsReplaced;
 	}
 
-	
+
+        @VisibleForTesting
 	@SuppressWarnings("static-access")
-	public String metaInfoRemoved(String fileName) {
+	String metaInfoRemoved(String fileName) {
 
 		fileName = fileName.toLowerCase();
 		String replaced = fileName.replaceAll("xvid*", "");
@@ -46,8 +49,8 @@ public class FileNameCleaner {
 		return replaced;
 	}
 
-	
-	public String pathRemoved(String pathPrefixedFileName) {
+	@VisibleForTesting
+	String pathRemoved(String pathPrefixedFileName) {
 
 		int lastIndexOfFileSeperator = pathPrefixedFileName
 				.lastIndexOf(File.separator); // index is 0 based
@@ -68,9 +71,20 @@ public class FileNameCleaner {
 	}
 
 
-	public String nonWordsReplacedWithSpace(String fileName) {
+        @VisibleForTesting
+	String nonWordsReplacedWithSpace(String fileName) {
 		String nonWordCharsReplaced = fileName.replaceAll("\\W", " ");
 		return nonWordCharsReplaced;
 	}
+
+        public List<String> cleanAndEncode(List<String> pathPrefixedFileNames)
+         {
+          FileNameCleaner fileNameTrimmer = new FileNameCleaner();
+        List<String> simpleNames = fileNameTrimmer.withoutDirPath(pathPrefixedFileNames);
+        List<String> simpleNamesTwo = fileNameTrimmer.withoutMetaInfo(simpleNames);
+        List<String> nonWordsReplaced = fileNameTrimmer.withoutNonWords(simpleNamesTwo);
+        List<String> encMovieList = new UrlEncoderUtils().getEncoded(nonWordsReplaced);
+          return encMovieList;
+        }
 
 }

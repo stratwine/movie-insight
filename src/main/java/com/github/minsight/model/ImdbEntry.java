@@ -5,38 +5,41 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class ImdbEntry {
 
 	@JsonProperty("Title")
-	String title;
+	String title=" ";
 	@JsonProperty("Year")
-	String year;
+	String year="";
 	@JsonProperty("Rated")
-	String rated;
+	String rated="";
 	@JsonProperty("Released")
 	String released;
 	@JsonProperty("Genre")
-	String genre;
+	String genre="";
 	@JsonProperty("Director")
 	String director;
 	@JsonProperty("Writer")
-	String writer;
+	String writer="";
 	@JsonProperty("Actors")
-	String actors;
+	String actors="";
 	@JsonProperty("Plot")
-	String plot;
+	String plot="";
 	@JsonProperty("Poster")
-	String poster;
+	String poster="";
 	@JsonProperty("Runtime")
-	String runtime;
+	String runtime="";
 	@JsonProperty("Rating")
-	String rating;
+	String rating="";
 	@JsonProperty("Votes")
-	String votes;
+	String votes="";
 	@JsonProperty("ID")
-	String id;
+	String id="";
 	@JsonProperty("Response")
-	String response;
+	String response="";
 
 	public String getTitle() {
-		return title;
+
+            
+	return title;
+
 	}
 
 	public String getYear() {
@@ -160,4 +163,37 @@ public class ImdbEntry {
 		return this.title + "  " + this.rating + "  " + this.votes + "\n";
 	}
 
+
+        public static String[] getHeaderContent()
+        {
+          return new String[]
+            {
+              "Title",
+              "Rating",
+              "Votes",
+              "Genre",
+              "Director",
+              "Year",
+              "Plot",
+              "Runtime",
+              "Actors"
+
+            };
+        }
+
+        public String[] getTextContent()
+        {
+           return new String[]
+           {
+              this.getTitle().replaceAll(",", "-"),
+              this.getRating(),
+              this.getVotes(),
+              this.getGenre().replaceAll(",", "-"),
+              this.getDirector().replaceAll(",", "-"),
+              this.getYear(),
+              this.getPlot().replaceAll(",", "-"),
+              this.getRuntime(),
+              this.getActors().replaceAll(",", "-"),
+           };
+        }
 }

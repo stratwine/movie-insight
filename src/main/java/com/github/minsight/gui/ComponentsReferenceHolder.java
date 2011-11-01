@@ -5,6 +5,7 @@
 
 package com.github.minsight.gui;
 
+import java.awt.TextArea;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JProgressBar;
@@ -20,6 +21,9 @@ public class ComponentsReferenceHolder {
     private JFileChooser saveAsFileChooser;
     private JButton saveButton;
     private JButton scanButton;
+    
+
+
     
     public JFileChooser getDirChooser() {
         return dirChooser;

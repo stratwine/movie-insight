@@ -5,18 +5,18 @@ import java.io.IOException;
 import org.apache.http.client.ClientProtocolException;
 import org.junit.Test;
 
-import com.github.minsight.imdb.ImdbApiClient;
+import com.github.minsight.imdb.BackgroundWorker;
 
 public class ImdbClientTest {
 
-	@Test
+	/*Test
 	public void getMovieInfoTest() throws ClientProtocolException, IOException {
 		try {
-			ImdbApiClient imdbClient = new ImdbApiClient();
+			BackgroundWorker imdbClient = new BackgroundWorker();
 			imdbClient.getMovieInfo("speed");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 
 }

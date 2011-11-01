@@ -1,19 +1,13 @@
 package com.github.minsight.gui;
 
-import com.github.minsight.encoder.UrlEncoderUtils;
-import com.github.minsight.imdb.ImdbApiClient;
-import com.github.minsight.io.CSVFileWriter;
-import com.github.minsight.io.FileNameCleaner;
+import com.github.minsight.imdb.BackgroundWorker;
+import com.github.minsight.io.BackgroundCSVFileWriter;
 import com.github.minsight.io.FileSearch;
 import com.github.minsight.model.ImdbEntry;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.swing.table.DefaultTableModel;
 
 /*
  * To change this template, choose Tools | Templates
@@ -32,28 +26,54 @@ import javax.swing.table.DefaultTableModel;
 public class MovieInsightBasicFrame extends javax.swing.JFrame {
 
     ComponentsReferenceHolder componentsReferenceHolder = new ComponentsReferenceHolder();
-    ImdbApiClient client;
+    BackgroundWorker backgroundWorker;
+    Informant informant; //initialized after initComponents()
+
     /** Creates new form MovieInsightBasicFrame */
     public MovieInsightBasicFrame() {
 
         initComponents();
-        jButton2.setVisible(false);
-        saveChooser.setVisible(false);
-        jProgressBar1.setVisible(false);
-        componentsReferenceHolder.setDirChooser(dirChooser);
-        componentsReferenceHolder.setProgressBar(jProgressBar1);
-        componentsReferenceHolder.setSaveAsFileChooser(saveChooser);
-        componentsReferenceHolder.setSaveButton(jButton2);
-        componentsReferenceHolder.setScanButton(jButton1);
+        hideFileSaveRelatedUI();
+        hideProgressBar();
+        populateComponentRefHolder();
+        initInformant();
+        initListenerForFileSaveButton();
+    }
 
+    private void hideScanButton() {
+        jButton1.setVisible(false);
+    }
+
+    private void initInformant() {
+        informant = new Informant(componentsReferenceHolder);
+    }
+
+    private void hideProgressBar() {
+        jProgressBar1.setVisible(false);
+    }
+
+    private void initListenerForFileSaveButton() {
         jButton2.addActionListener(new java.awt.event.ActionListener() {
+
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
             }
         });
     }
 
-    
+    private void populateComponentRefHolder() {
+        componentsReferenceHolder.setDirChooser(dirChooser);
+        componentsReferenceHolder.setProgressBar(jProgressBar1);
+        componentsReferenceHolder.setSaveButton(jButton2);
+        componentsReferenceHolder.setScanButton(jButton1);
+
+    }
+
+    private void hideFileSaveRelatedUI() {
+        jButton2.setVisible(false);
+     
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -68,8 +88,8 @@ public class MovieInsightBasicFrame extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         dirChooser = new javax.swing.JFileChooser();
         jProgressBar1 = new javax.swing.JProgressBar();
-        saveChooser = new javax.swing.JFileChooser();
         jButton2 = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
         jDialog1.getContentPane().setLayout(jDialog1Layout);
@@ -83,6 +103,7 @@ public class MovieInsightBasicFrame extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBounds(new java.awt.Rectangle(800, 800, 800, 800));
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         jButton1.setText("Scan for movies and fetch imdb info");
@@ -102,133 +123,92 @@ public class MovieInsightBasicFrame extends javax.swing.JFrame {
         jProgressBar1.setString("fetching info");
         jProgressBar1.setStringPainted(true);
 
+        jButton2.setText("save as csv in selected directory");
+        jButton2.setActionCommand("saveButton");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(141, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton1)
-                        .addGap(133, 133, 133))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(66, 66, 66))))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(22, 22, 22)
-                .addComponent(dirChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 455, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(122, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(98, 98, 98)
+                        .addComponent(dirChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 341, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(126, 126, 126)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jButton2)
+                            .addComponent(jButton1)))
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 534, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(82, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(6, 6, 6)
                 .addComponent(dirChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 337, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(19, 19, 19)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton1)
                 .addGap(18, 18, 18)
+                .addComponent(jButton2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(60, Short.MAX_VALUE))
+                .addGap(15, 15, 15))
         );
 
-        saveChooser.setControlButtonsAreShown(false);
-        saveChooser.setDialogType(javax.swing.JFileChooser.SAVE_DIALOG);
-        saveChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
-
-        jButton2.setText("save as csv in selected directory");
-        jButton2.setActionCommand("saveButton");
+        jButton2.getAccessibleContext().setAccessibleName("saveButton");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(51, 51, 51)
+                .addGap(53, 53, 53)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(saveChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(29, 29, 29)
-                        .addComponent(jButton2)))
-                .addContainerGap(61, Short.MAX_VALUE))
+                .addGap(452, 452, 452)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 766, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(58, Short.MAX_VALUE)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
-                .addGap(117, 117, 117)
-                .addComponent(saveChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30)
-                .addComponent(jButton2)
-                .addContainerGap(42, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(492, 492, 492)
+                        .addComponent(jLabel1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 503, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(24, Short.MAX_VALUE))
         );
 
-        jButton2.getAccessibleContext().setAccessibleName("saveButton");
-
-        pack();
+        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        setBounds((screenSize.width-654)/2, (screenSize.height-568)/2, 654, 568);
     }// </editor-fold>//GEN-END:initComponents
 
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt)
-    {
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            System.out.println("You clicked on save");
-            List<ImdbEntry> imdbEntries = client.get();
-            File toSave=new File(saveChooser.getSelectedFile().toString());
-            CSVFileWriter csvFileWriter = new CSVFileWriter();
-           
-            if(toSave.isDirectory())
-            {
-                System.out.println("Saving in dir");
-                csvFileWriter.createCSVFileInDirectory(toSave, imdbEntries);
-            }
-            else
-            {
-               
-            }
-
+            List<ImdbEntry> imdbEntries = backgroundWorker.get();
+            File saveAtLocation = new File(dirChooser.getSelectedFile().toString());
+            BackgroundCSVFileWriter csvFileWriter = new BackgroundCSVFileWriter(saveAtLocation, imdbEntries, informant);
+            csvFileWriter.execute();
         } catch (InterruptedException ex) {
-            Logger.getLogger(MovieInsightBasicFrame.class.getName()).log(Level.SEVERE, null, ex);
+            informant.informErrorOccured(ex);
         } catch (ExecutionException ex) {
-            Logger.getLogger(MovieInsightBasicFrame.class.getName()).log(Level.SEVERE, null, ex);
+            informant.informErrorOccured(ex);
         }
-        
+
     }
-    
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-
-
-        jProgressBar1.setIndeterminate(true);
-        jProgressBar1.setVisible(true);
-        FileSearch fileSearch = new FileSearch();
+        showProgressBar();
+        hideScanButton();
         String locationToSearch = dirChooser.getSelectedFile().toString();
-        ArrayList<String> pathPrefixedfileNames = fileSearch.getFileNames(locationToSearch);
-
-        FileNameCleaner fileNameTrimmer = new FileNameCleaner();
-
-        ArrayList<String> simpleNames = fileNameTrimmer.withoutDirPath(pathPrefixedfileNames);
-        List<String> simpleNamesTwo = fileNameTrimmer.withoutMetaInfo(simpleNames);
-        List<String> nonWordsReplaced = fileNameTrimmer.withoutNonWords(simpleNamesTwo);
-        System.out.println("Non words replaced" + nonWordsReplaced);
-
-        final List<String> encodedMovieList = new UrlEncoderUtils().getEncoded(nonWordsReplaced);
-
-        client = new ImdbApiClient(encodedMovieList, componentsReferenceHolder);
-        client.execute();
-
-
-
-
-
-        //displayResultsInTable(imdbEntries);
+        FileSearch fileSearch = new FileSearch(locationToSearch,informant);
+        backgroundWorker = new BackgroundWorker(informant, fileSearch);
+        backgroundWorker.execute();
     }//GEN-LAST:event_jButton1ActionPerformed
-
 
     /**
      * @param args the command line arguments
@@ -237,7 +217,6 @@ public class MovieInsightBasicFrame extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             public void run() {
-
                 new MovieInsightBasicFrame().setVisible(true);
 
             }
@@ -248,22 +227,14 @@ public class MovieInsightBasicFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JDialog jDialog1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
-    private javax.swing.JFileChooser saveChooser;
     // End of variables declaration//GEN-END:variables
-    private static DefaultTableModel tableModel = new DefaultTableModel();
 
-    public static DefaultTableModel getTableModel() {
-        return tableModel;
+    private void showProgressBar() {
+        jProgressBar1.setIndeterminate(true);
+        jProgressBar1.setVisible(true);
     }
-    private static String statusText = "";
-
-    public static String getStatusText() {
-        return statusText;
-    }
-
-    public static void setStatusText(String someStatusText) {
-        statusText = someStatusText;
-    }
+    
 }

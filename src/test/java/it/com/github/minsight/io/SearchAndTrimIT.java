@@ -6,12 +6,12 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.minsight.encoder.UrlEncoderUtils;
-import com.github.minsight.imdb.ImdbApiClient;
+import com.github.minsight.imdb.BackgroundWorker;
 import com.github.minsight.model.ImdbEntry;
 
 public class SearchAndTrimIT {
 
-	@Test
+	/*@Test
 	public void searchAndTrim() {
 		FileSearch fileSearch = new FileSearch();
 		ArrayList<String> pathPrefixedfileNames = fileSearch
@@ -30,8 +30,8 @@ public class SearchAndTrimIT {
 		List<String> encodedMovieList = new UrlEncoderUtils()
 				.getEncoded(nonWordsReplaced);
 
-		ImdbApiClient client = new ImdbApiClient();
+		BackgroundWorker client = new BackgroundWorker();
 		//TODO: complete test
-	}
+	}*/
 
 }
